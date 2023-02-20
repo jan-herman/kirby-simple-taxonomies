@@ -1,0 +1,12 @@
+# Docs: https://getkirby.com/docs/reference/panel/fields/multiselect
+
+label: jan-herman.simple-taxonomies.fields.taxonomy-terms.label
+
+type: multiselect
+
+icon: tag
+options:
+    type: query
+    query: page.parent.taxonomyTerms('categories')
+    text: "{{ item.title }}"
+    value: "{{ item.slug }}"

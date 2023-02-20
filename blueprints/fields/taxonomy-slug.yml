@@ -1,0 +1,7 @@
+# Docs: https://getkirby.com/docs/reference/panel/fields/slug
+
+label: jan-herman.simple-taxonomies.fields.taxonomy-slug.label
+type: slug
+placeholder: "category"
+before: "{{ page.url }}/"
+after: ":category-slug"

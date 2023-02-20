@@ -1,0 +1,31 @@
+# Docs: https://getkirby.com/docs/reference/panel/fields/structure
+
+label: jan-herman.simple-taxonomies.fields.taxonomy.label
+
+type: structure
+duplicate: false
+empty: jan-herman.simple-taxonomies.fields.taxonomy.empty
+columns:
+    title:
+        width: 1/2
+    slug:
+        width: 1/2
+fields:
+    title:
+        label: jan-herman.simple-taxonomies.fields.taxonomy.fields.title.label
+        type: text
+        counter: false
+        required: true
+        width: 1/2
+    slug:
+        label: jan-herman.simple-taxonomies.fields.taxonomy.fields.slug.label
+        type: slug
+        wizard:
+            field: title
+            text: Generate from title
+        required: true
+        width: 1/2
+    singular_title:
+        label: jan-herman.simple-taxonomies.fields.taxonomy.fields.singular_title.label
+        type: text
+        counter: false
