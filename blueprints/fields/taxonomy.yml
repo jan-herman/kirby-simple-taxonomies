@@ -2,9 +2,11 @@
 
 label: jan-herman.simple-taxonomies.fields.taxonomy.label
 
-type: structure
+type: synced-structure
 duplicate: false
 empty: jan-herman.simple-taxonomies.fields.taxonomy.empty
+validate:
+    unique: slug
 columns:
     title:
         width: 1/2
@@ -15,6 +17,7 @@ fields:
         label: jan-herman.simple-taxonomies.fields.taxonomy.fields.title.label
         type: text
         counter: false
+        icon: title
         required: true
         width: 1/2
     slug:

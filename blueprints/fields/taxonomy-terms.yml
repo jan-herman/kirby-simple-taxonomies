@@ -8,5 +8,5 @@ icon: tag
 options:
     type: query
     query: page.parent.taxonomyTerms('categories')
-    text: "{{ item.title }}"
-    value: "{{ item.slug }}"
+    text: '{{ item.title }}'
+    value: '{{ item.uuid }}'

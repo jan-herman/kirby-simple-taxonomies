@@ -2,6 +2,6 @@
 
 label: jan-herman.simple-taxonomies.fields.taxonomy-slug.label
 type: slug
-placeholder: "category"
-before: "{{ page.url }}/"
-after: ":category-slug"
+placeholder: 'category'
+before: '{{ page.url }}/'
+after: jan-herman.simple-taxonomies.fields.taxonomy-slug.after
