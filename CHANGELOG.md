@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.1.0] - 2024-04-25
+### Added
+- plugin options: `paramValue`, `paramValueSeparator`, `fieldValueSeparator`
+- `$pages->filterByTerms()` method
+
+### Changed
+- major refactoring
+    - `Structure` replaced with dedicated `Terms` class
+- `$pages->taxonomyTerms()` deprecated in favor of `$pages->taconomy()`
+- `$page->taxonomyTerms()` deprecated in favor of `$page->taconomy()`
+- `$page->taxonomyArchiveSlug()` deprecated in favor of `$page->taxonomyParam()`
+
+
 ## [2.0.0] - 2024-01-19
 ### Added
 - hidden uuid field

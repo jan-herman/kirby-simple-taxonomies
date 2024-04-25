@@ -1,19 +1,30 @@
 <?php
 
 use Kirby\Cms\App as Kirby;
-use Kirby\Cms\Page;
-use Kirby\Cms\Structure;
-use Kirby\Cms\StructureObject;
+use Kirby\Cms\Pages;
+use Kirby\Content\Field;
+use Kirby\Data\Data;
 use Kirby\Data\Yaml;
 use Kirby\Exception\Exception;
+use Kirby\Exception\InvalidArgumentException;
+use Kirby\Query\Query;
+use JanHerman\SimpleTaxonomies\Terms;
+use JanHerman\SimpleTaxonomies\Term;
+
+@include_once __DIR__ . '/vendor/autoload.php';
 
 Kirby::plugin('jan-herman/simple-taxonomies', [
+    'options' => [
+        'paramValue' => 'slug',
+        'paramValueSeparator' => '+',
+        'fieldValueSeparator' => ',',
+    ],
     'pagesMethods' => [
-        'taxonomyTerms' => function (string $taxonomy = 'categories'): Structure {
-            $terms = new Structure();
+        'taxonomy' => function (string $taxonomy = 'categories'): Terms {
+            $terms = Terms::factory();
 
             foreach ($this as $page) {
-                $page_terms = $page->taxonomyTerms($taxonomy);
+                $page_terms = $page->taxonomy($taxonomy);
 
                 if ($page_terms) {
                     foreach ($page_terms as $key => $value) {
@@ -23,58 +34,119 @@ Kirby::plugin('jan-herman/simple-taxonomies', [
             }
 
             return $terms;
-        }
-    ],
-    'pageMethods' => [
-        'taxonomyArchiveSlug' => function (string $taxonomy = 'categories'): string {
-            return (string) param($this->{$taxonomy . '_slug'}()->toString() ?: 'category');
         },
-        'isTaxonomyArchive' => function (string $taxonomy = 'categories'): bool {
-            return (bool) $this->taxonomyArchiveSlug($taxonomy);
-        },
-        'taxonomyTerms' => function (string $taxonomy = 'categories'): Structure {
-            $terms = $this?->content()->{$taxonomy}()?->toStructure();
+        'filterByTerms' => function (string $taxonomy = 'categories', Terms $terms = null): Pages {
+            $terms = $terms ?: $this->parent()->openTerms($taxonomy);
 
-            if (!$terms) {
-                return new Structure();
+            if ($terms->isEmpty()) {
+                return $this;
             }
 
-            $taxonomy_slug = $this->content()?->{$taxonomy . '_slug'}()->toString() ?: 'category';
+            $separator = option('jan-herman.simple-taxonomies.fieldValueSeparator');
+            $term_uuids = $terms->values(function ($term) {
+                return $term->uuid()->toString();
+            });
 
-            foreach ($terms as $term) {
-                $term->content()->update([
-                    'url' => url($this->url(), ['params' => [$taxonomy_slug => $term->slug()]])
-                ]);
+            return $this->filterBy($taxonomy, 'in', $term_uuids, $separator);
+        },
+        // deprecated
+        'taxonomyTerms' => function (string $taxonomy = 'categories'): Terms {
+            return $this->taxonomy($taxonomy);
+        },
+    ],
+    'pageMethods' => [
+        'taxonomySlug' => function (string $taxonomy = 'categories'): string {
+            return (string) $this->{$taxonomy . '_slug'}()->toString() ?: 'category';
+        },
+        'taxonomyParam' => function (string $taxonomy = 'categories'): string {
+            return (string) param($this->taxonomySlug($taxonomy));
+        },
+        'taxonomyParamValues' => function (string $taxonomy = 'categories'): array {
+            $param = $this->taxonomyParam($taxonomy);
+            $separator = option('jan-herman.simple-taxonomies.paramValueSeparator');
+
+            return explode($separator, $param);
+        },
+        'isTaxonomyArchive' => function (string $taxonomy = 'categories'): bool {
+            return (bool) $this->taxonomyParam($taxonomy);
+        },
+        'taxonomy' => function (string $taxonomy = 'categories'): Terms {
+            $terms = $this?->content()->{$taxonomy}()?->toTaxonomy();
+
+            if (!$terms) {
+                return Terms::factory();
             }
 
             return $terms;
         },
-        'taxonomyTerm' => function (string $term_uuid, string $taxonomy = 'categories'): StructureObject {
-            return $this->taxonomyTerms($taxonomy)->findBy('uuid', $term_uuid);
+        'taxonomyTerm' => function (string $term_uuid, string $taxonomy = 'categories'): Term {
+            return $this->taxonomy($taxonomy)->findBy('uuid', $term_uuid);
         },
-        'terms' => function (string $taxonomy = 'categories', Page $taxonomy_page = null): Structure {
-            $taxonomy_page = $taxonomy_page ?: $this->parent();
-            $taxonomy_terms = $taxonomy_page->taxonomyTerms($taxonomy);
-            $uuids = $this->content()->{$taxonomy}()?->split();
-
-            if (!$taxonomy_terms || !$uuids) {
-                return new Structure();
+        'terms' => function (string $taxonomy = 'categories'): Terms {
+            $field = $this->content()->{$taxonomy}();
+            return $field->toTerms($taxonomy);
+        },
+        'hasTerm' => function (Term|string $term, string $taxonomy = 'categories'): bool {
+            if ($term instanceof Term) {
+                return $this->terms($taxonomy)->has($term);
+            } else {
+                $terms = $this->content()->{$taxonomy}()?->split();
+                return in_array($term, $terms);
+            }
+        },
+        'openTerms' => function (string $taxonomy = 'categories'): Terms {
+            if (!$this->isTaxonomyArchive($taxonomy)) {
+                return Terms::factory();
             }
 
-            return $taxonomy_terms->filterBy('uuid', 'in', $uuids);
-        }
+            $param_value = option('jan-herman.simple-taxonomies.paramValue');
+            $terms = $this->taxonomy($taxonomy);
+            $param_values = $this->taxonomyParamValues($taxonomy);
+
+            return $terms->filterBy($param_value, 'in', $param_values);
+        },
+        'openTerm' => function (string $taxonomy = 'categories'): ?Term {
+            return $this->openTerms($taxonomy)->first();
+        },
+        // deprecated
+        'taxonomyTerms' => function (string $taxonomy = 'categories'): Terms {
+            return $this->taxonomy($taxonomy);
+        },
+        'taxonomyArchiveSlug' => function (string $taxonomy = 'categories'): string {
+            return $this->taxonomyParam($taxonomy);
+        },
     ],
     'fieldMethods' => [
-        'toTerms' => function ($field, Page $taxonomy_page = null): Structure {
-            $taxonomy_page = $taxonomy_page ?: $field->parent()->parent();
-            $taxonomy_terms = $taxonomy_page->taxonomyTerms($field->key());
-            $uuids = $field->split();
+        'toTaxonomy' => function (Field $field): Terms {
+            try {
+                return Terms::factory(
+                    Data::decode($field->value, 'yaml'),
+                    ['parent' => $field->parent(), 'field' => $field]
+                );
+            } catch (Exception) {
+                $message = 'Invalid structure data for "' . $field->key() . '" field';
 
-            if (!$taxonomy_terms || !$uuids) {
-                return new Structure();
+                if ($parent = $field->parent()) {
+                    $message .= ' on parent "' . $parent->id() . '"';
+                }
+
+                throw new InvalidArgumentException($message);
+            }
+        },
+        'toTerms' => function (Field $field): Terms {
+            $taxonomy_query = $field->parent()->blueprint()->field($field->key())['options']['query'];
+            $query = new Query($taxonomy_query);
+            $taxonomy = $query->resolve([
+                'page' => $field->parent()
+            ]);
+            $uuids = $field->split();
+            $separator = option('jan-herman.simple-taxonomies.fieldValueSeparator');
+
+            if ($taxonomy->isEmpty() || !$uuids) {
+                return Terms::factory();
             }
 
-            return $taxonomy_terms->filterBy('uuid', 'in', $uuids);
+            return $taxonomy->filterBy('uuid', 'in', $uuids, $separator);
         }
     ],
     'validators' => [
