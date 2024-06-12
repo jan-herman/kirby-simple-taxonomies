@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.1.1] - 2024-06-12
+### Added
+- `translate: false` to taxonomy-terms field blueprint
+
+
 ## [2.1.0] - 2024-04-25
 ### Added
 - plugin options: `paramValue`, `paramValueSeparator`, `fieldValueSeparator`

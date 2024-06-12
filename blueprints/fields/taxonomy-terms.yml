@@ -10,3 +10,4 @@ options:
     query: page.parent.taxonomyTerms('categories')
     text: '{{ item.title }}'
     value: '{{ item.uuid }}'
+translate: false
