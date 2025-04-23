@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.2.0] - 2025-04-23
+### Added
+- optional `params parameter` to `Term::url()` method  (useful for combining multiple filters)
+
+
 ## [2.1.1] - 2024-06-12
 ### Added
 - `translate: false` to taxonomy-terms field blueprint

@@ -12,14 +12,15 @@ class Term extends StructureObject
         return $this->title()->toString();
     }
 
-    public function url(Page $archive_page = null): string
+    public function url(Page|null $archive_page = null, array $params = []): string
     {
         $archive_page = $archive_page ?: $this->parent();
         $taxonomy = $this->field()->key();
         $taxonomy_slug = $archive_page->taxonomySlug($taxonomy);
         $param_value = option('jan-herman.simple-taxonomies.paramValue');
+        $params = array_merge($params, [$taxonomy_slug => $this->{$param_value}()->toString()]);
 
-        return url($archive_page->url(), ['params' => [$taxonomy_slug => $this->{$param_value}()->toString()]]);
+        return $archive_page->url(['params' => $params]);
     }
 
     public function isOpen(): bool
