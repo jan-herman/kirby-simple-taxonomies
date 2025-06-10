@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.3.0] - 2025-06-10
+### Changed
+- `field/taxonomy-terms` uses singular title if available
+
+
 ## [2.2.0] - 2025-04-23
 ### Added
 - optional `params parameter` to `Term::url()` method  (useful for combining multiple filters)

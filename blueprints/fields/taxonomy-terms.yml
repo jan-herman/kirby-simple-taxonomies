@@ -8,6 +8,6 @@ icon: tag
 options:
     type: query
     query: page.parent.taxonomyTerms('categories')
-    text: '{{ item.title }}'
+    text: '{{ item.singular_title.or(item.title) }}'
     value: '{{ item.uuid }}'
 translate: false
