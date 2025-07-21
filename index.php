@@ -35,17 +35,25 @@ Kirby::plugin('jan-herman/simple-taxonomies', [
 
             return $terms;
         },
-        'filterByTerms' => function (string $taxonomy = 'categories', Terms $terms = null): Pages {
-            $terms = $terms ?: $this->parent()->openTerms($taxonomy);
+        'filterByTerms' => function (string $taxonomy = 'categories', Terms|Term|null $terms = null): Pages {
+            if ($terms === null) {
+                $terms = $this->parent()->openTerms($taxonomy);
 
-            if ($terms->isEmpty()) {
-                return $this;
+                if ($terms->isEmpty()) {
+                    return $this;
+                }
             }
 
+            $term_uuids = [];
             $separator = option('jan-herman.simple-taxonomies.fieldValueSeparator');
-            $term_uuids = $terms->values(function ($term) {
-                return $term->uuid()->toString();
-            });
+
+            if ($terms instanceof Terms) {
+                $term_uuids = $terms->values(function ($term) {
+                    return $term->uuid()->toString();
+                });
+            } elseif ($terms instanceof Term) {
+                $term_uuids[] = $terms->uuid()->toString();
+            }
 
             return $this->filterBy($taxonomy, 'in', $term_uuids, $separator);
         },

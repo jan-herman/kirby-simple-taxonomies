@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.4.0] - 2025-07-21
+### Changed
+- `filterByTerms` pages method now accepts both `Terms` and a single `Term` object as a parameter
+
+
 ## [2.3.0] - 2025-06-10
 ### Changed
 - `field/taxonomy-terms` uses singular title if available
