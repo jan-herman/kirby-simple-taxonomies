@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.5.0] - 2025-12-16
+### Added
+- `$min_matches` (int|bool) parameter to `filterByTerms` pages method
+    - options: true (default) = all terms must match, false = at least one term must match, int = minimum number of matching terms
+
+
 ## [2.4.0] - 2025-07-21
 ### Changed
 - `filterByTerms` pages method now accepts both `Terms` and a single `Term` object as a parameter

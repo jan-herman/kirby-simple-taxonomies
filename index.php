@@ -35,7 +35,7 @@ Kirby::plugin('jan-herman/simple-taxonomies', [
 
             return $terms;
         },
-        'filterByTerms' => function (string $taxonomy = 'categories', Terms|Term|null $terms = null): Pages {
+        'filterByTerms' => function (string $taxonomy = 'categories', Terms|Term|null $terms = null, bool|int $min_matches = true): Pages {
             if ($terms === null) {
                 $terms = $this->parent()->openTerms($taxonomy);
 
@@ -55,7 +55,18 @@ Kirby::plugin('jan-herman/simple-taxonomies', [
                 $term_uuids[] = $terms->uuid()->toString();
             }
 
-            return $this->filterBy($taxonomy, 'in', $term_uuids, $separator);
+            if ($min_matches === true) {
+                return $this->filterBy($taxonomy, 'in', $term_uuids, $separator);
+            }
+
+            $min_matches = max(1, (int) $min_matches);
+
+            return $this->filter(
+                function ($page) use ($taxonomy, $term_uuids, $separator, $min_matches) {
+                    $page_uuids = $page->{$taxonomy}()->split($separator);
+                    return count(array_intersect($page_uuids, $term_uuids)) >= $min_matches;
+                }
+            );
         },
         // deprecated
         'taxonomyTerms' => function (string $taxonomy = 'categories'): Terms {
