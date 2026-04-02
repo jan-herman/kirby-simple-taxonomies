@@ -1,5 +1,20 @@
 # Changelog
 
+## [3.0.0] - 2026-04-02
+### Addded
+- support for Kirby 5 (new synced structure field)
+
+### Changed
+- directory structure (index.php split into multiple files)
+
+### Removed
+- deprecated pages methods
+    - `$pages->taxonomyTerms()`
+- deprecated page methods
+    - `$page->taxonomyTerms()`
+    - `$page->taxonomyArchiveSlug()`
+
+
 ## [2.5.0] - 2025-12-16
 ### Added
 - `$min_matches` (int|bool) parameter to `filterByTerms` pages method
